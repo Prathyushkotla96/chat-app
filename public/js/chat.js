@@ -1,37 +1,57 @@
 const socket=io()
 
-// socket.on('countUpdated',(count)=>{
-//     console.log('count has been updated',count)
-// })
+const $messageform=document.querySelector('#message-form')
+const $messageformInput=$messageform.querySelector('input')
+const $messageformButton=$messageform.querySelector('button')
+const $sendlocationbutton=document.querySelector('#send-location')
+const $messages=document.querySelector('#messages')
 
-// document.querySelector('#increment').addEventListener('click',()=>{
-//     console.log('clicked')
-//     socket.emit('increment')
-// })
+//templates
+const messageTemplate=document.querySelector('#message-template').innerHTML
 
 socket.on('message',(message)=>{
     console.log(message)
+    const html=Mustache.render(messageTemplate,{
+        message
+    })
+    $messages.insertAdjacentHTML('beforeend',html)
+
 
 })
 
-document.querySelector('#message-form').addEventListener('submit',(e)=>{
+$messageform.addEventListener('submit',(e)=>{
     e.preventDefault()
+
+    $messageformButton.setAttribute('disabled','disabled')
 
     const message=e.target.elements.message.value
 
-    socket.emit('sendMessage',message)
+    socket.emit('sendMessage',message,(error)=>{
+        $messageformButton.removeAttribute('disabled')
+        $messageformInput.value=''
+        $messageformInput.focus()
+        if (error){
+            return console.log(error)
+        }
+        console.log('the message was delivered!')
+    })
 
 })
 
-document.querySelector('#send-location').addEventListener('click',()=>{
+$sendlocationbutton.addEventListener('click',()=>{
     if(!navigator.geolocation){
         return alert('Geolocation is not supported by your browser')
     }
+
+    $sendlocationbutton.setAttribute('disabled','disabled')
 
     navigator.geolocation.getCurrentPosition((position)=>{
         socket.emit('sendLocation',{
             latitude:position.coords.latitude,
             longitude:position.coords.longitude
+        },()=>{
+            $sendlocationbutton.removeAttribute('disabled')
+            console.log('location shared')
         })
 
     })
