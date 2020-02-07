@@ -1,5 +1,5 @@
 const socket=io()
-
+//elements
 const $messageform=document.querySelector('#message-form')
 const $messageformInput=$messageform.querySelector('input')
 const $messageformButton=$messageform.querySelector('button')
@@ -10,6 +10,11 @@ const $messages=document.querySelector('#messages')
 const messageTemplate=document.querySelector('#message-template').innerHTML
 const locationmessageTemplate=document.querySelector('#locationmessage-template').innerHTML
 
+//options
+const{username,room}=Qs.parse(location.search,{ignoreQueryPrefix:true})
+
+
+
 
 
 socket.on('message',(message)=>{
@@ -19,9 +24,9 @@ socket.on('message',(message)=>{
         createdAt:moment(message.createdAt).format('h:mm a')
     })
     $messages.insertAdjacentHTML('beforeend',html)
-
-
 })
+
+
 
 socket.on('locationmessage',(message)=>{
     //console.log(url)
@@ -30,8 +35,9 @@ socket.on('locationmessage',(message)=>{
         createdAt:moment(message.createdAt).format('h:mm a')
     })
     $messages.insertAdjacentHTML('beforeend',html)
-
 })
+
+
 
 $messageform.addEventListener('submit',(e)=>{
     e.preventDefault()
@@ -49,8 +55,9 @@ $messageform.addEventListener('submit',(e)=>{
         }
         console.log('the message was delivered!')
     })
-
 })
+
+
 
 $sendlocationbutton.addEventListener('click',()=>{
     if(!navigator.geolocation){
@@ -70,3 +77,5 @@ $sendlocationbutton.addEventListener('click',()=>{
 
     })
 })
+
+socket.emit('join',{username,room})
