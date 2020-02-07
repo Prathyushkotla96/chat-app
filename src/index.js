@@ -3,7 +3,8 @@ const express= require('express')
 const path=require('path')
 const socketio=require('socket.io')
 const Filter=require('bad-words')
-const {generateMsessage,generateLocationMessage}=require('./utils/messages')
+const {generateMessage,generateLocationMessage}=require('./utils/messages')
+const {addUser,removeUser,getUser,getUsersInRoom} = require('./utils/users')
 
 
 const app=express()
@@ -19,12 +20,22 @@ io.on('connection',(socket)=>{
     console.log('new web socket collection')
 
 
-    socket.on('join',({username,room})=>{
-        socket.join(room)
+    socket.on('join',(options,callback)=>{
+        const{error,user}=addUser({id:socket.id,...options})
 
-        socket.emit('message',generateMsessage('Welcome!'))
-        socket.broadcast.to(room).emit('message',generateMsessage(`${username} has joined!`))
 
+        if(error){
+            return callback(error)
+
+        }
+
+
+        socket.join(user.room)
+
+        socket.emit('message',generateMessage('Welcome!'))
+        socket.broadcast.to(user.room).emit('message',generateMessage(`${user.username} has joined!`))
+
+        callback()
 
 
     })
@@ -35,7 +46,7 @@ io.on('connection',(socket)=>{
         if(filter.isProfane(message)){
             return callback('profanity is not allowed')
         }
-        io.to().emit('message',generateMsessage(message))
+        io.to('1234').emit('message',generateMessage(message))
         callback('delivered')
     })
 
@@ -46,7 +57,13 @@ io.on('connection',(socket)=>{
     })
 
     socket.on('disconnect',()=>{
-        io.emit('message',generateMsessage('user has left'))
+       const user= removeUser(socket.id)
+       
+       if(user){
+        io.to(user.room).emit('message',generateMessage(`${user.username} has left!`))
+
+       }
+        
     })
 })
 server.listen(port,()=>{

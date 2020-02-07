@@ -1,4 +1,4 @@
-const generateMsessage=(text)=>{
+const generateMessage=(text)=>{
     return {
         text,
         createdAt:new Date().getTime()
@@ -15,6 +15,6 @@ const generateLocationMessage=(url)=>{
 }
 
 module.exports={
-    generateMsessage,
+    generateMessage,
     generateLocationMessage
 }
